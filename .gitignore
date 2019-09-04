@@ -1,0 +1,10 @@
+.gradle
+.idea
+*.iml
+build
+out
+**/*~
+**/*.swp
+.vs/
+.DS_Store
+

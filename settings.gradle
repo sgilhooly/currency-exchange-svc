@@ -1,0 +1,11 @@
+// Sets a few config settings and defines all the sub-projects
+
+rootProject.name = 'currency-service'
+
+include 'container:exchange-rate'
+include 'core'
+include 'httpClient'
+include 'currency'
+include 'currency:api'
+project(':currency:api').name = 'currency-api'
+include 'secrets'

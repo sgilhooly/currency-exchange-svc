@@ -1,0 +1,16 @@
+dependencies {
+    implementation deps.log
+    implementation deps.akka
+    implementation deps.akkaHttp
+    implementation deps.akkaHttpJson
+    implementation deps.guava
+    implementation project(':core')
+    implementation project(':httpClient')
+    implementation project(':secrets')
+    implementation project(':currency:currency-api')
+    runtimeOnly deps.akkaLogging
+
+    testImplementation deps.junitApi
+    testImplementation deps.mockito
+    testRuntimeOnly deps.junitRuntime
+}

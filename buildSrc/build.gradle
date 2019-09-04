@@ -1,0 +1,8 @@
+apply plugin: 'java-library'
+
+repositories {
+  jcenter()
+}
+dependencies {
+  compile 'com.bmuschko:gradle-docker-plugin:4.6.2'
+}

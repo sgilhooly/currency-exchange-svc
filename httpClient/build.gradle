@@ -1,0 +1,6 @@
+dependencies {
+  implementation deps.log
+  implementation deps.akka
+  implementation deps.akkaHttp
+  implementation project(':core')
+}

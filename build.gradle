@@ -1,0 +1,113 @@
+buildscript {
+
+  repositories {
+    jcenter()
+  }
+
+  dependencies {
+    classpath 'io.github.robwin:jgitflow-gradle-plugin:0.6.0'
+  }
+}
+
+plugins {
+  id "com.diffplug.gradle.spotless" version "3.23.0" apply false
+}
+
+apply plugin: 'io.github.robwin.jgitflow'
+
+
+ext.junitVersion = "5.1.0"
+ext.scalaVersion = '2.12'
+ext.akkaVersion = '2.5.17'
+ext.akkaHttpVersion = '10.1.5'
+ext.junitVersion = '5.3.1'
+
+ext.deps = [
+    akka        : "com.typesafe.akka:akka-actor_${scalaVersion}:${akkaVersion}",
+    akkaHttp    : [
+        "com.typesafe.akka:akka-http_${scalaVersion}:${akkaHttpVersion}",
+        "com.typesafe.akka:akka-http-jackson_${scalaVersion}:${akkaHttpVersion}",
+        "com.typesafe.akka:akka-stream_${scalaVersion}:${akkaVersion}",
+    ],
+    akkaHttpJson: "com.typesafe.akka:akka-http-jackson_${scalaVersion}:${akkaHttpVersion}",
+    akkaHttpTest: [
+        "com.typesafe.akka:akka-http-testkit_${scalaVersion}:${akkaHttpVersion}",
+        "com.typesafe.akka:akka-stream-testkit_${scalaVersion}:${akkaVersion}"],
+    akkaLogging : "com.typesafe.akka:akka-slf4j_${scalaVersion}:${akkaVersion}",
+    aws         : 'software.amazon.awssdk:bom:2.5.29',
+    awsSecrets  : "software.amazon.awssdk:secretsmanager",
+    bouncyCastle: "org.bouncycastle:bcprov-jdk16:1.46",
+    caffine     : "com.github.ben-manes.caffeine:caffeine:2.6.2",
+    charon      : 'org.wso2.charon:org.wso2.charon3.core:3.0.26',
+    cmdOpts     : 'net.sf.jopt-simple:jopt-simple:5.0.4',
+    googleHttp  : 'com.google.http-client:google-http-client:1.23.0',
+    guava       : 'com.google.guava:guava:26.0-jre',
+    jacksonGuava: "com.fasterxml.jackson.datatype:jackson-datatype-guava:2.4.0",
+    joor        : "org.jooq:joor-java-8:0.9.7",
+    junitApi    : [
+        "org.junit.jupiter:junit-jupiter-api:${junitVersion}",
+        "junit:junit:4.12"
+    ],
+    junitRuntime: [
+        "org.junit.jupiter:junit-jupiter-engine:${junitVersion}",
+        "org.junit.vintage:junit-vintage-engine:${junitVersion}",
+    ],
+    log         : 'org.slf4j:slf4j-api:1.7.25',
+    logRuntime  : "ch.qos.logback:logback-classic:1.2.3",
+    mockito     : 'org.mockito:mockito-core:2.22.0',
+    modelMapper : "org.modelmapper:modelmapper:2.3.0",
+    tsconfig    : 'com.typesafe:config:1.3.3'
+]
+
+
+allprojects {
+  group 'com.mineraltree'
+  version '1.0'
+
+  repositories {
+    jcenter()
+  }
+
+  apply plugin: 'java'
+  apply plugin: 'idea'
+  apply plugin: "com.diffplug.gradle.spotless"
+  apply plugin: 'maven-publish'
+
+  test {
+    useJUnitPlatform()
+  }
+
+  publishing {
+    publications {
+      "$project.name"(MavenPublication) {
+        from components.java
+      }
+    }
+
+    repositories {
+      maven {
+        name = 'local'
+        def releasesRepoUrl = "file://${buildDir}/repo/releases"
+        def snapshotsRepoUrl = "file://${buildDir}/repo/snapshots"
+        url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl;
+      }
+      maven {
+        name = 'nexus'
+        def releasesRepoUrl  = "http://localhost:8081/nexus/content/repositories/releases"
+        def snapshotsRepoUrl = "http://localhost:8081/nexus/content/repositories/snapshots"
+        url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl;
+      }
+    }
+  }
+
+  spotless {
+    java {
+      target '**/*.java'
+      targetExclude '**/build/generated/src/**', '**/build/generated/source/**'
+      googleJavaFormat()
+      removeUnusedImports()
+    }
+  }
+
+  sourceCompatibility = 1.8
+}

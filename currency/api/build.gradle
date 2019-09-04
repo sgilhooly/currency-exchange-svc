@@ -1,0 +1,8 @@
+apply plugin: 'java-library'
+
+dependencies {
+    implementation deps.akkaHttp
+    implementation deps.log
+    implementation deps.guava
+    api project(':core')
+}

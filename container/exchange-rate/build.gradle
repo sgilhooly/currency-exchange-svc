@@ -1,0 +1,35 @@
+import com.mineraltree.releng.ApplicationContainerMaker
+
+apply plugin: ApplicationContainerMaker
+
+
+dependencies {
+    compile project(':currency')
+
+    runtimeOnly deps.logRuntime
+}
+
+// Support java CPU/memory limits in a container
+// -----------------------------------------------
+// SEE https://blogs.oracle.com/java-platform-group/java-se-support-for-docker-cpu-and-memory-limits
+//  OR https://royvanrijn.com/blog/2018/05/java-and-docker-memory-limits/
+//
+// See issue JDK-8170888 for details
+def jvmDockerOptions = [
+        '-XX:+UnlockExperimentalVMOptions',
+        '-XX:+UseCGroupMemoryLimitForHeap',
+        '-Xss2m'    // stack size (akka-http needs a lot)
+]
+
+// Configures the "main" application for this application deployment. This application also deploys
+// other scripts (entry points) but the plugin requires this one to be declared at a minimum.
+// The main class defined here is the docker version of the main service application.
+mainClassName = "com.mineraltree.currency.CurrencyServiceMain"
+applicationName = "currency-service"
+applicationDefaultJvmArgs = jvmDockerOptions
+
+container {
+    baseImage = 'openjdk:8-jre-alpine'
+}
+
+build.dependsOn 'buildContainer'

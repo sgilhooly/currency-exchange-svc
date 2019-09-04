@@ -1,0 +1,19 @@
+dependencies {
+  implementation deps.log
+  implementation deps.guava
+  implementation deps.akka
+  implementation deps.akkaHttp
+  implementation deps.akkaHttpJson
+  implementation deps.googleHttp
+  implementation deps.cmdOpts
+  implementation deps.bouncyCastle
+  runtimeOnly deps.akkaLogging
+
+  implementation deps.modelMapper
+  implementation deps.jacksonGuava
+
+  testImplementation deps.junitApi
+  testImplementation deps.mockito
+  testImplementation deps.akkaHttpTest
+  testRuntimeOnly deps.junitRuntime
+}
