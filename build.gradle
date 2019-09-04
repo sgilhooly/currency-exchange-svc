@@ -89,13 +89,18 @@ allprojects {
         name = 'local'
         def releasesRepoUrl = "file://${buildDir}/repo/releases"
         def snapshotsRepoUrl = "file://${buildDir}/repo/snapshots"
-        url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl;
+        url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
       }
       maven {
         name = 'nexus'
         def releasesRepoUrl  = "http://localhost:8081/nexus/content/repositories/releases"
         def snapshotsRepoUrl = "http://localhost:8081/nexus/content/repositories/snapshots"
-        url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl;
+        url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+
+        credentials {
+          username mavenUser
+          password mavenPassword
+        }
       }
     }
   }
