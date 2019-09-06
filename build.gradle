@@ -92,8 +92,8 @@ allprojects {
         url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
 
         credentials {
-          username "$mavenUser"
-          password "$mavenPassword"
+          username "developer"
+          password "eld8081arG" // TODO:  TESTING!  REMOVE THIS VIA SQUASH BEFORE COMMIT!!!!
         }
       }
     }
