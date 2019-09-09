@@ -135,7 +135,7 @@ class ApplicationContainerMaker implements Plugin<Project> {
 
     // Configure a task which can push container to AWS ECR
     def buildContainer = project.tasks.findByPath('buildContainer')
-    project.task(type: DockerPushImage, dependsOn: [buildContainer], "pushImage") {
+    project.task(type: DockerPushImage, dependsOn: [buildContainer], "push-image") {
       def ecrRegistry = project.findProperty('ecrRegistry')
       def ecrRepo = project.findProperty('ecrRepo')
       if (ecrRegistry == null || ecrRepo == null) {
