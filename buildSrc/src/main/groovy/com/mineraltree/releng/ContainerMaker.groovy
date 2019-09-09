@@ -72,11 +72,16 @@ class ContainerMaker implements Plugin<Project> {
 
     // Create the task which generates the container image.
     def buildTask = project.task(type: DockerBuildImage, dependsOn: [dockerfileTask, stageTask], 'buildContainer') {
+
+      def ecrRegistry = project.findProperty('ecrRegistry')
+      def ecrRepo = project.findProperty('ecrRepo')
+
       dependsOn dockerfileTask, stageTask
       description "Builds this project as a Docker container image"
       group "Docker"
       inputDir = dockerfileTask.destDir
       tags.add "mineraltree/${project.name}:${project.version}"
+      tags.add "${ecrRegistry}/${ecrRepo}:${project.version}"
     }
   }
 }

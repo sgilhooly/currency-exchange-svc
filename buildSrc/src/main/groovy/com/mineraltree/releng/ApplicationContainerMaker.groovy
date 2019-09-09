@@ -1,5 +1,6 @@
 package com.mineraltree.releng
 
+import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.application.CreateStartScripts
@@ -58,6 +59,7 @@ class ApplicationContainerMaker implements Plugin<Project> {
     // automatically apply the ContainerMaker and application plugins.
     project.pluginManager.apply(ContainerMaker.class)
     project.pluginManager.apply('application')
+    project.pluginManager.apply('com.patdouble.awsecr')
 
     // Create a container map which will allow users to define additional entry points for
     // this application + container. An "entry point" in this context is an additional
@@ -130,5 +132,18 @@ class ApplicationContainerMaker implements Plugin<Project> {
       addFile "${project.applicationName}.tgz", '/'
       environmentVariable "PATH", '${PATH}:' + "/${project.applicationName}/bin"
     }
+
+    // Configure a task which can push container to AWS ECR
+    def buildContainer = project.tasks.findByPath('buildContainer')
+    project.task(type: DockerPushImage, dependsOn: [buildContainer], "pushImage") {
+      def ecrRegistry = project.findProperty('ecrRegistry')
+      def ecrRepo = project.findProperty('ecrRepo')
+      if (ecrRegistry == null || ecrRepo == null) {
+        println('Will not be able to push container image to AWS ECR using com.patdouble.awsecr plugin. Missing environment variable ECR_REGISTRY or ECR_REPO.')
+      }
+
+      imageName = "${ecrRegistry}/${ecrRepo}:${project.version}"
+    }
+
   }
 }

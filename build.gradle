@@ -62,7 +62,7 @@ ext.deps = [
 
 allprojects {
   group 'com.mineraltree'
-  version '1.0'
+  version '0.1'
 
   repositories {
     jcenter()
@@ -76,35 +76,7 @@ allprojects {
   test {
     useJUnitPlatform()
   }
-
-  publishing {
-    publications {
-      "$project.name"(MavenPublication) {
-        from components.java
-      }
-    }
-
-    repositories {
-      maven {
-        name = 'local'
-        def releasesRepoUrl = "file://${buildDir}/repo/releases"
-        def snapshotsRepoUrl = "file://${buildDir}/repo/snapshots"
-        url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-      }
-      maven {
-        name = 'nexus'
-        def releasesRepoUrl  = "http://localhost:8081/nexus/content/repositories/releases"
-        def snapshotsRepoUrl = "http://localhost:8081/nexus/content/repositories/snapshots"
-        url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-
-        credentials {
-          username mavenUser
-          password mavenPassword
-        }
-      }
-    }
-  }
-
+  
   spotless {
     java {
       target '**/*.java'
