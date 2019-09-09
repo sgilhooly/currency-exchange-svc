@@ -135,9 +135,13 @@ class ApplicationContainerMaker implements Plugin<Project> {
 
     // Configure a task which can push container to AWS ECR
     def buildContainer = project.tasks.findByPath('buildContainer')
-    def pushImageTask = project.task(type: DockerPushImage, dependsOn: [buildContainer], "pushImage") {
-      def ecrRegistry = System.getenv("ECR_REGISTRY")
-      def ecrRepo = System.getenv("ECR_REPO")
+    project.task(type: DockerPushImage, dependsOn: [buildContainer], "pushImage") {
+      def ecrRegistry = project.getProperty('ecrRegistry');
+      def ecrRepo = project.getProperty('ecrRepo');
+      if (ecrRegistry == null || ecrRepo == null) {
+        println('Will not be able to push container image to AWS ECR using com.patdouble.awsecr plugin. Missing environment variable ECR_REGISTRY or ECR_REPO.')
+      }
+
       imageName = "${ecrRegistry}/${ecrRepo}:${project.version}"
     }
 
