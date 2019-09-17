@@ -25,7 +25,7 @@ def jvmDockerOptions = [
 // other scripts (entry points) but the plugin requires this one to be declared at a minimum.
 // The main class defined here is the docker version of the main service application.
 mainClassName = "com.mineraltree.currency.CurrencyServiceMain"
-applicationName = "currency-service"
+applicationName = "exchange-rate"
 applicationDefaultJvmArgs = jvmDockerOptions
 
 container {
