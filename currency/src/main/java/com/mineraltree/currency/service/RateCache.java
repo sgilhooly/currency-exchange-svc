@@ -97,7 +97,6 @@ public class RateCache extends AbstractActor {
     if (request.responseExpected() && isBaseLoaded) {
       getSender().tell(currentRates.get(request.getBase()), getSelf());
     } else {
-      log.info("[base={}] First request for currency rates. Fetching now.", request.getBase());
 
       if (failedCache.asMap().containsKey(request.getBase())) {
         getSender()
@@ -106,6 +105,7 @@ public class RateCache extends AbstractActor {
 
       if (!inFlight.contains(request.getBase())) {
         rateSource.tell(request, getSelf());
+        log.info("[base={}] First request for currency rates. Fetching now.", request.getBase());
         inFlight.add(request.getBase());
       }
 
