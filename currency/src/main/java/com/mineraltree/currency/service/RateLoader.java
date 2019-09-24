@@ -11,8 +11,6 @@ import com.mineraltree.currency.GetRateFailedResponse;
 import com.mineraltree.currency.RatesUnavailable;
 import com.mineraltree.currency.api.CurrencyProcessor;
 import com.mineraltree.currency.providers.BaseProvider;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.Iterator;
 import java.util.List;
 

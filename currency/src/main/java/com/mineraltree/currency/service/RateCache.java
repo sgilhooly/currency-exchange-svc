@@ -89,9 +89,7 @@ public class RateCache extends AbstractActor {
   private void retrieveRates(GetRatesRequest request) {
     if (!request.getBase().matches("[A-Za-z]{3}$")) {
       getSender()
-          .tell(
-              new IllegalArgumentException("Currency must be a 3 letter string"),
-              getSelf());
+          .tell(new IllegalArgumentException("Currency must be a 3 letter string"), getSelf());
       return;
     }
 
@@ -102,7 +100,8 @@ public class RateCache extends AbstractActor {
       log.info("[base={}] First request for currency rates. Fetching now.", request.getBase());
 
       if (failedCache.asMap().containsKey(request.getBase())) {
-        getSender().tell(new RatesUnavailable(new RuntimeException("Could not fetch rates")), getSelf());
+        getSender()
+            .tell(new RatesUnavailable(new RuntimeException("Could not fetch rates")), getSelf());
       }
 
       if (!inFlight.contains(request.getBase())) {
@@ -148,11 +147,10 @@ public class RateCache extends AbstractActor {
   private void retryRetrieveRates(String base) {
     if (currentRates.containsKey(base)) {
       getSender().tell(currentRates.get(base), getSelf());
-    }
-    else if (failedCache.asMap().containsKey(base)) {
-      getSender().tell(new RatesUnavailable(new RuntimeException("Could not fetch rates")), getSelf());
-    }
-    else {
+    } else if (failedCache.asMap().containsKey(base)) {
+      getSender()
+          .tell(new RatesUnavailable(new RuntimeException("Could not fetch rates")), getSelf());
+    } else {
       scheduleRetryRetrieveRates(base);
     }
   }
