@@ -7,6 +7,7 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
 import com.mineraltree.currency.ControlCode;
+import com.mineraltree.currency.GetRateFailedResponse;
 import com.mineraltree.currency.RatesUnavailable;
 import com.mineraltree.currency.api.CurrencyProcessor;
 import com.mineraltree.currency.providers.BaseProvider;
@@ -89,7 +90,7 @@ public class RateLoader extends AbstractActor {
                 // so the next request starts at the beginning
                 log.debug("[base={}] Rates retrieved successfully", base);
                 replyTo.tell(rate, self);
-                self.tell(ControlCode.PROVIDER_RESET, self);
+                resetActiveProvider();
               }
             });
   }
@@ -109,17 +110,9 @@ public class RateLoader extends AbstractActor {
       log.error(
           "Unable to fetch current exchange rates from all configured providers. Rates may be stale.");
 
-      // Schedule a retry in another 5 minutes
+      getSender().tell(new GetRateFailedResponse(base), getSelf());
+
       resetActiveProvider();
-      getContext()
-          .system()
-          .scheduler()
-          .scheduleOnce(
-              Duration.of(5, ChronoUnit.MINUTES),
-              getSelf(),
-              ControlCode.REFRESH,
-              getContext().dispatcher(),
-              getSender());
     }
   }
 
