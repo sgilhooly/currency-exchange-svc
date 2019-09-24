@@ -87,13 +87,13 @@ public class RateCache extends AbstractActor {
   }
 
   private void retrieveRates(GetRatesRequest request) {
-//    if (!"[A-Za-z]{3}".matches(request.getBase())) {
-//      getSender()
-//          .tell(
-//              new RatesUnavailable(
-//                  new RuntimeException("Currency must be formatted as a 3 letter string")),
-//              getSelf());
-//    }
+    if (!request.getBase().matches("[A-Za-z]{3}$")) {
+      getSender()
+          .tell(
+              new IllegalArgumentException("Currency must be a 3 letter string"),
+              getSelf());
+      return;
+    }
 
     boolean isBaseLoaded = currentRates.containsKey(request.getBase());
     if (request.responseExpected() && isBaseLoaded) {

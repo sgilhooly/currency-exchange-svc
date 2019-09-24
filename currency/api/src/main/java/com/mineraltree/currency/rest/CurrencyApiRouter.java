@@ -3,6 +3,7 @@ package com.mineraltree.currency.rest;
 import static akka.event.Logging.DebugLevel;
 import static akka.http.javadsl.server.Directives.complete;
 import static akka.http.javadsl.server.Directives.get;
+import static akka.http.javadsl.server.Directives.handleExceptions;
 import static akka.http.javadsl.server.Directives.logRequest;
 import static akka.http.javadsl.server.Directives.onSuccess;
 import static akka.http.javadsl.server.Directives.parameter;
@@ -11,6 +12,7 @@ import static com.mineraltree.utils.Ensure.verifyNotEmpty;
 import static com.mineraltree.utils.Ensure.verifyNotNull;
 
 import akka.http.javadsl.model.StatusCodes;
+import akka.http.javadsl.server.ExceptionHandler;
 import akka.http.javadsl.server.Route;
 import com.mineraltree.api.marshal.Marshal;
 import com.mineraltree.api.rest.ApiRouter;
@@ -28,7 +30,17 @@ public class CurrencyApiRouter implements ApiRouter {
 
   @Override
   public Route getRouter() {
-    return get(() -> logRequest("Currency Api Marker", DebugLevel(), this::handleConverter));
+    return handleExceptions(
+        getExceptionHandler(),
+        () -> get(() -> logRequest("Currency Api Marker", DebugLevel(), this::handleConverter)));
+  }
+
+  private ExceptionHandler getExceptionHandler() {
+    return ExceptionHandler.newBuilder()
+        .match(
+            IllegalArgumentException.class, e -> complete(StatusCodes.BAD_REQUEST, e.getMessage()))
+        .matchAny(e -> complete(StatusCodes.INTERNAL_SERVER_ERROR, "Server Error"))
+        .build();
   }
 
   private Route handleConverter() {
