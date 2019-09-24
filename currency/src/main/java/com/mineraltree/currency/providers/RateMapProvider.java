@@ -1,4 +1,4 @@
-package com.mineraltree.currency;
+package com.mineraltree.currency.providers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
