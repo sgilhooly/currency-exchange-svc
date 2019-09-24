@@ -12,7 +12,6 @@ import com.google.common.cache.LoadingCache;
 import com.mineraltree.currency.ControlCode;
 import com.mineraltree.currency.GetRateFailedResponse;
 import com.mineraltree.currency.GetRatesRequest;
-import com.mineraltree.currency.RatesUnavailable;
 import com.mineraltree.currency.dto.CurrencyRates;
 import java.time.Duration;
 import java.util.HashSet;
@@ -100,7 +99,7 @@ public class RateCache extends AbstractActor {
 
       if (failedCache.asMap().containsKey(request.getBase())) {
         getSender()
-            .tell(new RatesUnavailable(new RuntimeException("Could not fetch rates")), getSelf());
+            .tell(new IllegalArgumentException("Could not find given currency's rates"), getSelf());
       }
 
       if (!inFlight.contains(request.getBase())) {
@@ -149,7 +148,7 @@ public class RateCache extends AbstractActor {
       getSender().tell(currentRates.get(base), getSelf());
     } else if (failedCache.asMap().containsKey(base)) {
       getSender()
-          .tell(new RatesUnavailable(new RuntimeException("Could not fetch rates")), getSelf());
+          .tell(new IllegalArgumentException("Could not find given currency's rates"), getSelf());
     } else {
       scheduleRetryRetrieveRates(base);
     }
