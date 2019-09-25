@@ -3,6 +3,7 @@ package com.mineraltree.currency.service;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
+import akka.actor.Status;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
@@ -12,20 +13,20 @@ import com.google.common.cache.LoadingCache;
 import com.mineraltree.currency.ControlCode;
 import com.mineraltree.currency.GetRateFailedResponse;
 import com.mineraltree.currency.GetRatesRequest;
+import com.mineraltree.currency.RetryRatesRequest;
 import com.mineraltree.currency.dto.CurrencyRates;
 import java.time.Duration;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Caches the results of currency rate lookups to handle requests for the information immediately.
  */
 public class RateCache extends AbstractActor {
+  private final static String FAIL = "FAIL";
 
   private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
@@ -36,13 +37,12 @@ public class RateCache extends AbstractActor {
   private final Set<String> inFlight = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
   private final LoadingCache<String, String> failedCache =
       CacheBuilder.newBuilder()
-          .expireAfterAccess(1, TimeUnit.HOURS)
           .build(
               new CacheLoader<String, String>() {
 
                 @Override
                 public String load(String key) {
-                  return key;
+                  return FAIL;
                 }
               });
 
@@ -81,7 +81,7 @@ public class RateCache extends AbstractActor {
         .match(CurrencyRates.class, this::updateCurrentRates)
         .match(ControlCode.class, this::handleControl)
         .match(GetRatesRequest.class, this::retrieveRates)
-        .match(String.class, this::retryRetrieveRates)
+        .match(RetryRatesRequest.class, this::retryRetrieveRates)
         .match(GetRateFailedResponse.class, this::processRetrievalFail)
         .build();
   }
@@ -89,7 +89,10 @@ public class RateCache extends AbstractActor {
   private void retrieveRates(GetRatesRequest request) {
     if (!request.getBase().matches("[A-Za-z]{3}$")) {
       getSender()
-          .tell(new IllegalArgumentException("Currency must be a 3 letter string"), getSelf());
+          .tell(
+              new Status.Failure(
+                  new IllegalArgumentException("Currency must be a 3 letter string")),
+              getSelf());
       return;
     }
 
@@ -100,7 +103,10 @@ public class RateCache extends AbstractActor {
 
       if (failedCache.asMap().containsKey(request.getBase().toUpperCase())) {
         getSender()
-            .tell(new IllegalArgumentException("Could not find given currency's rates"), getSelf());
+            .tell(
+                new Status.Failure(
+                    new IllegalArgumentException("Could not find given currency's rates")),
+                getSelf());
       }
 
       if (!inFlight.contains(request.getBase())) {
@@ -110,13 +116,13 @@ public class RateCache extends AbstractActor {
       }
 
       if (request.responseExpected()) {
-        scheduleRetryRetrieveRates(request.getBase());
+        scheduleRetryRetrieveRates(request.getBase(), 0);
       }
     }
   }
 
   private void updateCurrentRates(CurrencyRates rates) {
-    if (failedCache.asMap().containsKey(rates.getBaseCurrency().toUpperCase())) {
+    if (failedCache.getIfPresent(rates.getBaseCurrency().toUpperCase()) != null) {
       failedCache.invalidate(rates.getBaseCurrency().toUpperCase());
     }
 
@@ -136,22 +142,32 @@ public class RateCache extends AbstractActor {
     }
   }
 
-  private void scheduleRetryRetrieveRates(String base) {
+  private void scheduleRetryRetrieveRates(String base, int attemptNum) {
     getContext()
         .system()
         .scheduler()
         .scheduleOnce(
-            Duration.ofMillis(100), getSelf(), base, getContext().dispatcher(), getSender());
+            Duration.ofMillis(100),
+            getSelf(),
+            new RetryRatesRequest(base, attemptNum),
+            getContext().dispatcher(),
+            getSender());
   }
 
-  private void retryRetrieveRates(String base) {
+  private void retryRetrieveRates(RetryRatesRequest req) {
+    String base = req.getBase();
     if (currentRates.containsKey(base)) {
       getSender().tell(currentRates.get(base), getSelf());
-    } else if (failedCache.asMap().containsKey(base.toUpperCase())) {
+    } else if (failedCache.getIfPresent(base.toUpperCase()) != null) {
       getSender()
-          .tell(new IllegalArgumentException("Could not find given currency's rates"), getSelf());
+          .tell(
+              new Status.Failure(
+                  new IllegalArgumentException("Could not find given currency's rates")),
+              getSelf());
     } else {
-      scheduleRetryRetrieveRates(base);
+      if (req.getAttemptNum() < 50) {
+        scheduleRetryRetrieveRates(base, req.getAttemptNum() + 1);
+      }
     }
   }
 

@@ -31,8 +31,6 @@ public class CurrencyProcessorLogic implements CurrencyProcessor {
                 o -> {
                   if (o instanceof CurrencyRates) {
                     return (CurrencyRates) o;
-                  } else if (o instanceof IllegalArgumentException) {
-                    throw (IllegalArgumentException) o;
                   } else {
                     throw new RuntimeException(
                         "Invalid return type from rate supplier. Expected CurrencyRates but received "

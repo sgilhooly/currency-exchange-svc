@@ -1,6 +1,7 @@
 package com.mineraltree.currency.rest;
 
 import static akka.event.Logging.DebugLevel;
+import static akka.event.Logging.ErrorLevel;
 import static akka.http.javadsl.server.Directives.complete;
 import static akka.http.javadsl.server.Directives.get;
 import static akka.http.javadsl.server.Directives.handleExceptions;
@@ -38,8 +39,18 @@ public class CurrencyApiRouter implements ApiRouter {
   private ExceptionHandler getExceptionHandler() {
     return ExceptionHandler.newBuilder()
         .match(
-            IllegalArgumentException.class, e -> complete(StatusCodes.BAD_REQUEST, e.getMessage()))
-        .matchAny(e -> complete(StatusCodes.INTERNAL_SERVER_ERROR, "Server Error"))
+            IllegalArgumentException.class,
+            e ->
+                logRequest(
+                    "Bad Request",
+                    ErrorLevel(),
+                    () -> complete(StatusCodes.BAD_REQUEST, e.getMessage())))
+        .matchAny(
+            e ->
+                logRequest(
+                    "Server Error",
+                    ErrorLevel(),
+                    () -> complete(StatusCodes.INTERNAL_SERVER_ERROR, "Server Error")))
         .build();
   }
 
