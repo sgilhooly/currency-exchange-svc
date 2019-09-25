@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -32,7 +33,7 @@ public class RateCache extends AbstractActor {
   private ActorRef rateSource;
   private final Props rateSourceProps;
   private final Duration refreshInterval;
-  private final Set<String> inFlight = new HashSet<>();
+  private final Set<String> inFlight = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
   private final LoadingCache<String, String> failedCache =
       CacheBuilder.newBuilder()
           .expireAfterAccess(1, TimeUnit.HOURS)
@@ -50,7 +51,7 @@ public class RateCache extends AbstractActor {
   }
 
   RateCache(Props rateSourceProps, Duration refreshInterval) {
-    this.currentRates = new TreeMap<>();
+    this.currentRates = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     this.rateSourceProps = rateSourceProps;
     this.refreshInterval = refreshInterval;
   }
@@ -97,7 +98,7 @@ public class RateCache extends AbstractActor {
       getSender().tell(currentRates.get(request.getBase()), getSelf());
     } else {
 
-      if (failedCache.asMap().containsKey(request.getBase())) {
+      if (failedCache.asMap().containsKey(request.getBase().toUpperCase())) {
         getSender()
             .tell(new IllegalArgumentException("Could not find given currency's rates"), getSelf());
       }
@@ -115,8 +116,8 @@ public class RateCache extends AbstractActor {
   }
 
   private void updateCurrentRates(CurrencyRates rates) {
-    if (failedCache.asMap().containsKey(rates.getBaseCurrency())) {
-      failedCache.invalidate(rates.getBaseCurrency());
+    if (failedCache.asMap().containsKey(rates.getBaseCurrency().toUpperCase())) {
+      failedCache.invalidate(rates.getBaseCurrency().toUpperCase());
     }
 
     log.info(
@@ -146,7 +147,7 @@ public class RateCache extends AbstractActor {
   private void retryRetrieveRates(String base) {
     if (currentRates.containsKey(base)) {
       getSender().tell(currentRates.get(base), getSelf());
-    } else if (failedCache.asMap().containsKey(base)) {
+    } else if (failedCache.asMap().containsKey(base.toUpperCase())) {
       getSender()
           .tell(new IllegalArgumentException("Could not find given currency's rates"), getSelf());
     } else {
@@ -156,6 +157,6 @@ public class RateCache extends AbstractActor {
 
   private void processRetrievalFail(GetRateFailedResponse response) throws ExecutionException {
     // 'get' is a misleading name here, this actually loads the base into the fail cache
-    failedCache.get(response.getBase());
+    failedCache.get(response.getBase().toUpperCase());
   }
 }
