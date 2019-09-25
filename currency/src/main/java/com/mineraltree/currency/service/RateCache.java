@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutionException;
  * Caches the results of currency rate lookups to handle requests for the information immediately.
  */
 public class RateCache extends AbstractActor {
-  private final static String FAIL = "FAIL";
+  private static final String FAIL = "FAIL";
 
   private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
