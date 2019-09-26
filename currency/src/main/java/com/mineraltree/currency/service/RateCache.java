@@ -7,9 +7,8 @@ import akka.actor.Status;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
+import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.mineraltree.currency.ControlCode;
 import com.mineraltree.currency.GetRateFailedResponse;
 import com.mineraltree.currency.GetRatesRequest;
@@ -35,16 +34,7 @@ public class RateCache extends AbstractActor {
   private final Props rateSourceProps;
   private final Duration refreshInterval;
   private final Set<String> inFlight = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-  private final LoadingCache<String, String> failedCache =
-      CacheBuilder.newBuilder()
-          .build(
-              new CacheLoader<String, String>() {
-
-                @Override
-                public String load(String key) {
-                  return FAIL;
-                }
-              });
+  private final Cache<String, String> failedCache = CacheBuilder.newBuilder().build();
 
   public static Props mkProps(Props rateSourceProps, Duration refreshInterval) {
     return Props.create(RateCache.class, rateSourceProps, refreshInterval);
@@ -101,7 +91,7 @@ public class RateCache extends AbstractActor {
       getSender().tell(currentRates.get(request.getBase()), getSelf());
     } else {
 
-      if (failedCache.asMap().containsKey(request.getBase().toUpperCase())) {
+      if (failedCache.getIfPresent(request.getBase().toUpperCase()) != null) {
         getSender()
             .tell(
                 new Status.Failure(
@@ -173,6 +163,6 @@ public class RateCache extends AbstractActor {
 
   private void processRetrievalFail(GetRateFailedResponse response) throws ExecutionException {
     // 'get' is a misleading name here, this actually loads the base into the fail cache
-    failedCache.get(response.getBase().toUpperCase());
+    failedCache.put(response.getBase().toUpperCase(), FAIL);
   }
 }
