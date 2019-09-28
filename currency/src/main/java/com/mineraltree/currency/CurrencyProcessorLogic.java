@@ -31,12 +31,13 @@ public class CurrencyProcessorLogic implements CurrencyProcessor {
                 o -> {
                   if (o instanceof CurrencyRates) {
                     return (CurrencyRates) o;
+                  } else {
+                    throw new RuntimeException(
+                        "Invalid return type from rate supplier. Expected CurrencyRates but received "
+                            + o.getClass().getName()
+                            + ": "
+                            + o.toString());
                   }
-                  throw new RuntimeException(
-                      "Invalid return type from rate supplier. Expected CurrencyRates but received "
-                          + o.getClass().getName()
-                          + ": "
-                          + o.toString());
                 },
                 executionContext);
     return FutureConverters.toJava(currencyRatesFuture);

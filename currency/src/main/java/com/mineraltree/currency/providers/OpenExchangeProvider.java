@@ -3,7 +3,6 @@ package com.mineraltree.currency.providers;
 import akka.http.javadsl.model.Query;
 import akka.japi.Pair;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mineraltree.currency.RateMapProvider;
 import com.mineraltree.currency.dto.CurrencyRates.Builder;
 import com.mineraltree.http.RequestUtils;
 import com.typesafe.config.Config;
