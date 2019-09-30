@@ -35,7 +35,7 @@ pipeline {
     stage('deploy') {
       steps {
         cleanWs()
-        git credentialsId: 'github-ssh', changelog: false, poll: false, branch: 'master', url: 'git@github.com:sgilhooly/release-control.git'
+        git credentialsId: 'github-ssh', changelog: false, poll: false, branch: 'master', url: 'git@github.com:mineraltree/pkg-exchange-rates-control.git'
         withCredentials([sshUserPrivateKey(credentialsId: 'github-ssh', keyFileVariable: 'GIT_KEY_FILE', passphraseVariable: 'NO_PASSPHRASE', usernameVariable: 'NO_USER')]) {
           sh 'echo $GIT_SSH_COMMAND'
           sh 'git --version'
