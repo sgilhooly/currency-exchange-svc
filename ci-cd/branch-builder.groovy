@@ -46,6 +46,8 @@ pipeline {
         }
         writeFile file: 'environment.libsonnet',
             text: "{namespace: \"$JOB_NAME\"}"
+        writeFile file: 'override.libsonnet',
+            text: """{microservices+: { "exchange-rate"+: { configMounts+: { 'aws-cred': { mountPath: "/var/mineraltree/.aws", secret:: true } }, env_+:: { "HOME": "/var/mineraltree" }}}}"""
         withCredentials([file(credentialsId: 'eng-kube-config', variable: 'KUBECONFIG'),
                          string(credentialsId: 'aws-access-secret', variable: 'AWS_SECRET_ACCESS_KEY'),
                          string(credentialsId: 'aws-access-key', variable: 'AWS_ACCESS_KEY_ID')]) {
